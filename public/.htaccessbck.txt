@@ -1,0 +1,72 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    # PROTECT env file
+    <Files .env|.env.example>
+        order allow,deny
+        deny from all
+    </Files>
+
+    # PROTECT htaccess file
+    <Files .htaccess>
+        order allow,deny
+        deny from all
+    </Files>
+
+    # Protect sensitive files
+    <FilesMatch "\.(env|json|yml|log|ini|xml|yml|phps|bak|sql)$">
+        Order Allow,Deny
+        Deny from all
+    </FilesMatch>
+
+    # Prevent script execution in specific folders
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteCond %{REQUEST_URI} ^/(app|bootstrap|config|database|public|resources|routes|storage|tests|vendor)/ [NC]
+        RewriteRule ^(.*)$ - [F,L]
+    </IfModule>
+
+    # Block access to xmlrpc.php (commonly targeted by brute force attacks)
+    <Files "xmlrpc.php">
+        Order Deny,Allow
+        Deny from all
+    </Files>
+
+    # Block access to wp-config.php (if not using WordPress)
+    <Files "wp-config.php">
+        Order Deny,Allow
+        Deny from all
+    </Files>
+
+    # Block access to phpinfo.php (if present)
+    <Files "phpinfo.php">
+        Order Deny,Allow
+        Deny from all
+    </Files>
+
+    # Prevent hotlinking of images (replace example.com with your domain)
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteCond %{HTTP_REFERER} !^$
+        RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?test.trinityenergyltd.com [NC]
+        RewriteRule \.(jpg|jpeg|png|gif)$ - [NC,F,L]
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ /index.php [L]
+</IfModule>
